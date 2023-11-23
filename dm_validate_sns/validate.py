@@ -1,29 +1,20 @@
-"""
-Validate integrity of AWS SNS messages.
-
-* Verifies cryptographic signature.
-* Checks signing certificate is hosted on an AWS-controlled URL.
-* Requires message be no older than one hour, the maximum lifetime of an SNS message.
-"""
-
-from __future__ import print_function
-
 import base64
 import datetime
 import re
 
 import oscrypto.asymmetric
 import oscrypto.errors
-import six
-from six.moves.urllib.request import urlopen
+from urllib.request import urlopen
 
 DEFAULT_CERTIFICATE_URL_REGEX = r"^https://sns\.[-a-z0-9]+\.amazonaws\.com(?:\.cn)?/"
 DEFAULT_MAX_AGE = datetime.timedelta(hours=1)
+
 
 class ValidationError(Exception):
     """
     ValidationError. Raised when a message fails integrity checks.
     """
+
 
 def validate(
     message,
@@ -68,6 +59,7 @@ def validate(
     # Check the cryptographic signature.
     SignatureValidator(certificate).validate(message)
 
+
 class SigningCertURLValidator(object):
     """
     Validate a message's SigningCertURL is in the expected format.
@@ -82,10 +74,11 @@ class SigningCertURLValidator(object):
 
         url = message.get("SigningCertURL")
 
-        if isinstance(url, six.string_types) and re.search(self.regex, url):
+        if isinstance(url, str) and re.search(self.regex, url):
             return
 
         raise ValidationError("SigningCertURL {!r} doesn't match required format {!r}".format(url, self.regex))
+
 
 class MessageAgeValidator(object):
     """
@@ -111,7 +104,7 @@ class MessageAgeValidator(object):
 
     def _get_utc_timestamp(self, message):
         utc_timestamp_str = message.get("Timestamp")
-        if not isinstance(utc_timestamp_str, six.string_types):
+        if not isinstance(utc_timestamp_str, str):
             raise ValidationError("Expected Timestamp to be a string, but received {!r}".format(utc_timestamp_str))
 
         try:
@@ -120,6 +113,7 @@ class MessageAgeValidator(object):
             raise ValidationError("Unexpected Timestamp format {!r}".format(utc_timestamp_str))
 
         return utc_timestamp
+
 
 class SignatureValidator(object):
     """
@@ -140,7 +134,7 @@ class SignatureValidator(object):
             raise ValidationError("Unexpected SignatureVersion {!r}".format(signature_version))
 
         base64_signature = message.get("Signature")
-        if not isinstance(base64_signature, six.string_types):
+        if not isinstance(base64_signature, str) and not isinstance(base64_signature, bytes):
             raise ValidationError("Expected Signature to be a string, but received {!r}".format(base64_signature))
 
         signature = base64.b64decode(base64_signature)
@@ -151,10 +145,10 @@ class SignatureValidator(object):
 
     def _validate_signature(self, signature, content):
         certificate = self.certificate
-        if isinstance(certificate, six.text_type):
+        if isinstance(certificate, str):
             certificate = certificate.encode()
 
-        if isinstance(content, six.text_type):
+        if isinstance(content, str):
             content = content.encode()
 
         try:

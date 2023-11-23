@@ -1,42 +1,30 @@
-#!/usr/bin/env python
+"""
+AWS SNS Validator for Digital Marketplace apps.
+"""
+import re
+import ast
+from setuptools import setup, find_packages
 
-import os.path
 
-from setuptools import setup
+_version_re = re.compile(r'__version__\s+=\s+(.*)')
 
-ROOT = os.path.dirname(__file__)
+with open('dm_validate_sns/__init__.py', 'rb') as f:
+    version = str(ast.literal_eval(_version_re.search(
+        f.read().decode('utf-8')).group(1)))
 
 setup(
-    version="0.1.1",
-    url="https://github.com/nathforge/validatesns",
-    name="validatesns",
-    description="Validate integrity of Amazon SNS messages",
-    long_description=open(os.path.join(ROOT, "README.rst")).read(),
-    author="Nathan Reynolds",
-    author_email="email@nreynolds.co.uk",
-    packages=["validatesns"],
-    package_dir={"": os.path.join(ROOT, "src")},
-    test_suite="tests",
+    name='ccs-digitalmarketplace-validate-sns',
+    version=version,
+    url='https://github.com/tim-s-ccs/digitalmarketplace-validate-sns',
+    license='MIT',
+    author='CCS Developers',
+    description='AWS SNS Validator for Digital Marketplace apps.',
+    long_description=__doc__,
+    packages=find_packages(),
+    package_data={'dm_validate_sns': ['py.typed']},
+    include_package_data=True,
     install_requires=[
-        line.strip()
-        for line in open(os.path.join(ROOT, "requirements.txt"))
-        if not line.startswith("#")
-        and line.strip() != ""
+        'oscrypto>=1.3.0',
     ],
-    tests_require=[
-        "mock",
-        "oscrypto",
-        "six"
-    ],
-    classifiers=[
-        "Development Status :: 4 - Beta",
-        "Intended Audience :: Developers",
-        "Topic :: Software Development",
-        "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.3",
-        "Programming Language :: Python :: 3.4"
-    ]
+    python_requires="~=3.9",
 )
